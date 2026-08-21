@@ -396,7 +396,8 @@ def _work_type_icon(work_type: OpportunityType, profile) -> str:
 
 
 def _work_type_button_label(profile, work_type, label: str) -> str:
-    return label
+    selected = work_type in (profile.preferences.work_types or ())
+    return f"{'[x]' if selected else '[ ]'} {label}"
 
 
 def settings_help(profile_id: UUID, revision: int) -> str:

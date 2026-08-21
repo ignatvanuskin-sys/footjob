@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.railpack.com",
   "deploy": {
-    "startCommand": "uv run --frozen python -m freelancer_bot --bot-only"
+    "startCommand": "uv run --frozen alembic upgrade head && uv run --frozen python -m freelancer_bot --bot-only"
   }
 }

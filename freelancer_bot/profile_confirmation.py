@@ -17,6 +17,7 @@ from .persistence.search_profiles import (
     UserRepository,
     UserRecord,
 )
+from .premium_emoji import EMOJI, glyph as _glyph
 from .profile_discovery import (
     ProfileDiscoveryIntentRepository,
     build_profile_discovery_intent,
@@ -559,15 +560,15 @@ def format_profile_summary(view: ProfileConfirmationView) -> str:
     profile = view.profile
     lines = [
         "<b>Профиль поиска</b>",
-        f"{_summary_mark()} Роли: {_format_terms(profile.roles)}",
-        f"{_summary_mark()} Навыки: {_format_terms(profile.skills)}",
-        f"{_summary_mark()} Категории: {_format_terms(profile.categories)}",
-        f"{_summary_mark()} Типы работы: {_format_work_types(profile.preferences)}",
-        f"{_summary_mark()} Бюджет: {_format_budget(profile.preferences)}",
-        f"{_summary_mark()} Языки: {_format_optional_terms(profile.preferences.languages)}",
-        f"{_summary_mark()} География: {_format_optional_terms(profile.preferences.geographies)}",
-        f"{_summary_mark()} Формат: {_format_work_modes(profile.preferences)}",
-        f"{_summary_mark()} Исключения: "
+        f"{_summary_mark('roles')} Роли: {_format_terms(profile.roles)}",
+        f"{_summary_mark('skills')} Навыки: {_format_terms(profile.skills)}",
+        f"{_summary_mark('categories')} Категории: {_format_terms(profile.categories)}",
+        f"{_summary_mark('work_types')} Типы работы: {_format_work_types(profile.preferences)}",
+        f"{_summary_mark('budget')} Бюджет: {_format_budget(profile.preferences)}",
+        f"{_summary_mark('languages')} Языки: {_format_optional_terms(profile.preferences.languages)}",
+        f"{_summary_mark('geographies')} География: {_format_optional_terms(profile.preferences.geographies)}",
+        f"{_summary_mark('work_modes')} Формат: {_format_work_modes(profile.preferences)}",
+        f"{_summary_mark('excluded_categories')} Исключения: "
         f"{_format_optional_terms(profile.preferences.excluded_categories)}",
     ]
     if view.missing_fields:
@@ -620,8 +621,21 @@ def _field_label(field: str) -> str:
     }[field]
 
 
-def _summary_mark() -> str:
-    return "▫️"
+def _summary_mark(field: str) -> str:
+    return _glyph(_FIELD_EMOJI[field])
+
+
+_FIELD_EMOJI = {
+    "roles": EMOJI.PROFILE,
+    "skills": EMOJI.CODE,
+    "categories": EMOJI.BOX,
+    "work_types": EMOJI.CHART_UP,
+    "budget": EMOJI.MONEY,
+    "languages": EMOJI.TEXT,
+    "geographies": EMOJI.LOCATION,
+    "work_modes": EMOJI.RESIZE,
+    "excluded_categories": EMOJI.CROSS,
+}
 
 
 def _format_work_types(preferences: SearchProfilePreferences) -> str:
