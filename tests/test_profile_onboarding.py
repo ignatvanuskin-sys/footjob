@@ -33,6 +33,7 @@ from freelancer_bot.profile_onboarding import (
     OnboardingProfileUsage,
     OpenAICompatibleOnboardingProfileAnalyzer,
     OpenAIOnboardingProfileAnalyzer,
+    _clean_json_content,
     onboarding_profile_cache_version,
     parsed_profile_from_analysis,
     validate_onboarding_profile_grounding,
@@ -410,6 +411,22 @@ class OnboardingProfileContractTest(unittest.IsolatedAsyncioTestCase):
             max_transport_attempts=1,
         )
         self.assertEqual(analyzer._max_tokens, 1000)
+
+    def test_clean_json_content_strips_markdown_code_fences(self):
+        fenced = '```json\n{"roles": []}\n```'
+        self.assertEqual(_clean_json_content(fenced), '{"roles": []}')
+
+        plain = '{"roles": []}'
+        self.assertEqual(_clean_json_content(plain), plain)
+
+        fenced_no_lang = '```\n{"skills": []}\n```'
+        self.assertEqual(
+            _clean_json_content(fenced_no_lang),
+            '{"skills": []}',
+        )
+
+        whitespace = '  {"roles": []}  '
+        self.assertEqual(_clean_json_content(whitespace), '{"roles": []}')
 
     async def test_provider_call_budget_is_hard_and_reported(self):
         calls = 0

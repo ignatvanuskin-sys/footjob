@@ -160,6 +160,13 @@ class RuntimeConfig(BaseSettings):
         validation_alias="FLOOD_WAIT_THRESHOLD_SECONDS",
         ge=0,
     )
+    flood_wait_max_attempts: int = classified_field(
+        5,
+        sensitivity=Sensitivity.INTERNAL,
+        validation_alias="FLOOD_WAIT_MAX_ATTEMPTS",
+        ge=1,
+        le=30,
+    )
     catch_up_limit: int = classified_field(
         25,
         sensitivity=Sensitivity.INTERNAL,

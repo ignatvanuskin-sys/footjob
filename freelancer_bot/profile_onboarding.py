@@ -49,6 +49,25 @@ def _chat_completions_url(base_url: str) -> str:
     return f"{normalized}/chat/completions"
 
 
+def _clean_json_content(content: str) -> str:
+    """Strip markdown code fences around a model's JSON output."""
+    if not isinstance(content, str):
+        return content
+    stripped = content.strip()
+    if stripped.startswith("```"):
+        stripped = re.sub(
+            r"^```(?:json)?\s*",
+            "",
+            stripped,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        if stripped.endswith("```"):
+            stripped = stripped[:-3]
+        stripped = stripped.strip()
+    return stripped
+
+
 @dataclass(frozen=True)
 class OnboardingProfileProviderMetrics:
     """Bounded, stage-specific metrics for one onboarding request."""
@@ -564,7 +583,7 @@ class OpenAIOnboardingProfileAnalyzer:
                 strict=True,
             )
             analysis = OnboardingProfileAnalysis.model_validate_json(
-                content,
+                _clean_json_content(content),
                 strict=True,
             )
             validate_onboarding_profile_grounding(analysis, description)

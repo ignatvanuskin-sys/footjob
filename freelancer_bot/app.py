@@ -11,7 +11,7 @@ from uuid import UUID
 
 from pydantic import SecretStr
 from telethon import Button, TelegramClient, events
-from telethon.errors import RPCError
+from telethon.errors import FloodWaitError, RPCError
 from telethon.tl.custom.message import Message
 
 from .billing import BillingPlan
@@ -299,9 +299,7 @@ class LeadBot:
 
         if background_enabled:
             await self.user_client.start()
-        await self.bot_client.start(
-            bot_token=_required_secret(self.config.bot_token, "TELEGRAM_BOT_TOKEN/BOT_TOKEN")
-        )
+        await _start_bot_client_with_flood_retry(self.bot_client, self.config)
 
         if background_enabled:
             snapshot = await self.source_adapter.list_for_session(self.user_client)
@@ -1868,6 +1866,61 @@ def _required_secret(value: SecretStr | None, name: str) -> str:
     if value is None or not value.get_secret_value().strip():
         raise ConfigurationError(f"{name} is required")
     return value.get_secret_value()
+
+
+async def _start_bot_client_with_flood_retry(
+    bot_client: TelegramClient,
+    config: RuntimeConfig,
+) -> None:
+    """Start the bot client, sleeping through Telegram FloodWait instead of
+    crash-looping.
+
+    Each started container re-authorizes the bot; when Telegram throttles
+    login (ImportBotAuthorizationRequest), the FloodWait must be awaited in
+    place -- otherwise every restart triggers another authorization and a
+    longer wait. Stops retrying after the configured number of attempts.
+    """
+    max_attempts = getattr(config, "flood_wait_max_attempts", 5)
+    base_delay = getattr(config, "flood_wait_threshold_seconds", 120)
+    for attempt in range(1, max_attempts + 1):
+        try:
+            await bot_client.start(
+                bot_token=_required_secret(
+                    config.bot_token,
+                    "TELEGRAM_BOT_TOKEN/BOT_TOKEN",
+                )
+            )
+            log_event(
+                LOGGER,
+                logging.INFO,
+                "telegram.bot.auth_success",
+                attempt=attempt,
+            )
+            return
+        except FloodWaitError as exc:
+            wait_seconds = int(exc.seconds)
+            log_event(
+                LOGGER,
+                logging.WARNING,
+                "telegram.bot.auth_flood_wait",
+                seconds=wait_seconds,
+                attempt=attempt,
+            )
+        except RPCError as exc:
+            log_event(
+                LOGGER,
+                logging.WARNING,
+                "telegram.bot.auth_rpc_error",
+                error=str(exc),
+                attempt=attempt,
+            )
+            raise
+        if attempt < max_attempts:
+            await asyncio.sleep(wait_seconds if wait_seconds > 0 else base_delay)
+    raise TimeoutError(
+        "Telegram bot authorization still flood-waited after "
+        f"{max_attempts} attempts"
+    )
 
 
 def _source_lookup(source: TelegramCollectorSource | Source) -> str:
