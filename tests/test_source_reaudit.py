@@ -35,7 +35,6 @@ from freelancer_bot.source_audit_sampler import (
     SourceAuditSampler,
 )
 from freelancer_bot.source_reaudit import (
-    DefaultSourceReauditTargetResolver,
     SourceReauditPolicy,
     SourceReauditScheduler,
 )

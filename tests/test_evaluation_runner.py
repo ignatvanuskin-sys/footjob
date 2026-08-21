@@ -9,7 +9,6 @@ import unittest
 
 from freelancer_bot.ai_telemetry import AIModelPrice
 from freelancer_bot.evaluation_runner import (
-    EvaluationCostLatency,
     EvaluationGateStatus,
     MetricObservation,
     EvaluationThresholds,

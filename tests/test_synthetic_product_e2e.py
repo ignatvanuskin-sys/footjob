@@ -7,7 +7,7 @@ from decimal import Decimal
 import json
 from types import SimpleNamespace
 import unittest
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import sqlalchemy as sa
 from telethon.errors import FloodWaitError
@@ -32,8 +32,6 @@ from freelancer_bot.opportunity_analysis import (
     OPPORTUNITY_ANALYSIS_SCHEMA_VERSION,
     OPPORTUNITY_ANALYZER_VERSION,
     OPPORTUNITY_ROUTING_VERSION,
-    IntentStage,
-    MarketDirection,
     OpportunityAnalysis,
     OpportunityAnalysisCall,
     OpportunityAnalysisUsage,
@@ -58,16 +56,13 @@ from freelancer_bot.persistence.schema import (
     match_evaluation_runs,
     match_traces,
     message_prefilter_results,
-    opportunity_analysis_cache,
     opportunity_analysis_links,
     opportunities,
     personalized_deliveries,
     raw_messages,
-    search_profiles,
     source_discovery_lineage,
     sources,
     telegram_chat_discovery_peers,
-    telegram_chat_discovery_topics,
 )
 from freelancer_bot.persistence.source_repository import SourceRepository, SourceStatus
 from freelancer_bot.persistence.telegram_operation_state import (
@@ -821,7 +816,7 @@ class SyntheticProductE2ETest(unittest.IsolatedAsyncioTestCase):
         config = self._config(max_pending_screens=2)
         repository = TelegramChatDiscoveryRepository()
         async with self.database.transaction() as connection:
-            topic = await repository.ensure_topic(
+            await repository.ensure_topic(
                 connection,
                 topic_text="synthetic backpressure",
                 language="en",

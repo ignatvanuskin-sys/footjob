@@ -69,6 +69,11 @@ jobs:
           uv run --frozen python -c "import freelancer_bot.app, freelancer_bot.config, freelancer_bot.legacy_pipeline, freelancer_bot.ports, freelancer_bot.persistence"
           uv run --frozen python -m freelancer_bot --check-config
 
+      - name: Lint
+        run: |
+          uv run --frozen ruff check freelancer_bot/
+          uv run --frozen ruff check tests/
+
       - name: Verify safe default startup
         shell: bash
         run: |

@@ -7,7 +7,6 @@ import json
 import unittest
 from uuid import uuid4
 
-import sqlalchemy as sa
 
 from freelancer_bot.matching import (
     CandidateExclusionCode,

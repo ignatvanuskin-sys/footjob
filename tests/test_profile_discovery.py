@@ -17,7 +17,6 @@ from freelancer_bot.persistence.schema import (
 from freelancer_bot.profile_discovery import (
     ProfileDiscoveryService,
     build_evaluation_intent,
-    build_profile_discovery_intent,
     evaluation_profile_specs,
     evaluate_source_relevance,
     web_strategy_for_intent,

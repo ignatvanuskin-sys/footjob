@@ -78,7 +78,7 @@ TELEGRAM_BOT_TOKEN=...
 DATABASE_URL=<your-postgresql-dsn>
 ```
 
-`DATABASE_URL` must use the `postgresql+psycopg://` scheme. The production application does not create or alter PostgreSQL schema at startup; run Alembic first.
+`DATABASE_URL` must use the `postgresql+psycopg://` scheme. The application itself does not create or alter PostgreSQL schema; migrations are applied via Alembic. Locally run `uv run --frozen alembic upgrade head`; on Railway the start command runs migrations before launching the bot.
 
 ## Configuration by mode
 
@@ -140,6 +140,23 @@ The public defaults are deliberately conservative:
 - CI contains no provider credentials and makes no provider calls.
 
 Bring your own key and set a budget appropriate for your account before enabling AI. Free or experimental providers are not treated as production-compatible merely because their endpoint accepts an OpenAI-shaped request. Provider selection must remain isolated and failures must fail closed.
+
+### Recommended free AI via OpenRouter
+
+The `tokenrouter` provider is a generic OpenAI-compatible gateway. Point it at OpenRouter to use low- or zero-cost models without changing code:
+
+```dotenv
+# Free OpenRouter + Gemini setup
+ONBOARDING_PROFILE_PROVIDER=tokenrouter
+TOKENROUTER_BASE_URL=https://openrouter.ai/api/v1
+TOKENROUTER_API_KEY=<your-openrouter-key>
+ONBOARDING_PROFILE_MODEL=google/gemini-3.5-flash-lite
+# Keep output bounded so cheap/free budgets are not rejected (OpenRouter 402s
+# on oversized max_tokens).
+ONBOARDING_PROFILE_MAX_TOKENS=1000
+```
+
+Obtain a key at <https://openrouter.ai/settings/keys> (free tier available). Free `:free` models can be flaky for strict JSON extraction; a very cheap model such as `google/gemini-3.5-flash-lite` is more reliable while staying well under a default budget. The analyzer strips markdown code fences from provider output so models that wrap JSON in triple backticks still parse.
 
 ## Telegram sessions and privacy
 

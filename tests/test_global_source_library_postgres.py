@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 import unittest
-from uuid import uuid4
 
 import sqlalchemy as sa
 
