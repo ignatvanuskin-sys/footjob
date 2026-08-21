@@ -57,7 +57,7 @@ from .persistence.search_profiles import (
     UserNotFound,
 )
 from .ports import CollectedMessage, ReplyDraftProvider
-from .premium_emoji import EMOJI
+from .premium_emoji import EMOJI, icon_id
 from .profile import load_freelancer_profile
 from .profile_confirmation import ProfileConfirmationService
 from .profile_onboarding import (
@@ -121,12 +121,12 @@ class TelethonLegacyLeadDelivery:
                 Button.inline(
                     "Сделать отклик",
                     data=f"draft:{lead_id}".encode("utf-8"),
-                    icon=EMOJI.SEND,
+                    icon=icon_id(EMOJI.SEND),
                 ),
                 Button.inline(
                     "Игнор",
                     data=f"ignore:{lead_id}".encode("utf-8"),
-                    icon=EMOJI.CROSS,
+                    icon=icon_id(EMOJI.CROSS),
                 ),
             ]
         ]
@@ -679,7 +679,7 @@ class LeadBot:
                         f"Не удалось обработать описание: {exc}\n\n"
                         "Попробуйте отправить описание ещё раз.",
                         parse_mode="html",
-                        buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
+                        buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=icon_id(EMOJI.CROSS))]],
                     )
                     return
                 if not response.retryable:
@@ -742,7 +742,7 @@ class LeadBot:
                     f"Не удалось сохранить значение: {exc}\n\n"
                     f"{prompt}",
                     parse_mode="html",
-                    buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
+                    buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=icon_id(EMOJI.CROSS))]],
                 )
                 return
 
@@ -817,7 +817,7 @@ class LeadBot:
             await event.respond(
                 new_profile_prompt(),
                 parse_mode="html",
-                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
+                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=icon_id(EMOJI.CROSS))]],
             )
 
         @self.bot_client.on(events.CallbackQuery(pattern=rb"^nav:cancel$"))
@@ -888,7 +888,7 @@ class LeadBot:
             await event.respond(
                 setting_prompt(setting_code),
                 parse_mode="html",
-                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
+                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=icon_id(EMOJI.CROSS))]],
             )
 
         @self.bot_client.on(
@@ -1796,7 +1796,7 @@ async def _respond_onboarding(event, response: TelegramOnboardingResponse) -> No
 
 async def _respond_navigation(event, response: TelegramOnboardingResponse) -> None:
     buttons = [
-        [Button.inline(button.label, data=button.data, icon=button.icon)
+        [Button.inline(button.label, data=button.data, icon=icon_id(button.icon))
          for button in row]
         for row in response.buttons
     ]
@@ -1809,9 +1809,9 @@ async def _respond_navigation(event, response: TelegramOnboardingResponse) -> No
 
 def _main_navigation_keyboard() -> list[list[object]]:
     return [
-        [Button.text("Мой поиск", resize=True, single_use=False, icon=EMOJI.SEARCH),
-         Button.text("Настройки", resize=True, single_use=False, icon=EMOJI.SETTINGS)],
-        [Button.text("Подписка", resize=True, single_use=False, icon=EMOJI.WALLET)],
+        [Button.text("Мой поиск", resize=True, single_use=False, icon=icon_id(EMOJI.SEARCH)),
+         Button.text("Настройки", resize=True, single_use=False, icon=icon_id(EMOJI.SETTINGS))],
+        [Button.text("Подписка", resize=True, single_use=False, icon=icon_id(EMOJI.WALLET))],
     ]
 
 
@@ -1826,7 +1826,7 @@ def _telethon_action_buttons(
     buttons: tuple[tuple[TelegramDeliveryActionButton, ...], ...],
 ) -> list[list[object]]:
     return [
-        [Button.inline(button.label, data=button.data, icon=button.icon)
+        [Button.inline(button.label, data=button.data, icon=icon_id(button.icon))
          for button in row]
         for row in buttons
     ]

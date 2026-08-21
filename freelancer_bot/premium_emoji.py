@@ -128,28 +128,46 @@ class GLYPH:
     LOADING = "🔄"
 
 
-def msg(emoji_id: str, text: str) -> str:
+def msg(emoji_id: int | str, text: str) -> str:
     """Render ``text`` with a leading premium emoji in HTML message markup."""
-    glyph = _glyph_for(emoji_id)
-    if len(emoji_id) != 19 or not emoji_id.isdigit():
+    value = _str_id(emoji_id)
+    if len(value) != 19 or not value.isdigit():
         raise ValueError("invalid premium emoji id")
     return (
-        f'<tg-emoji emoji-id="{emoji_id}">{glyph}</tg-emoji> '
+        f'<tg-emoji emoji-id="{value}">{_glyph_for(value)}</tg-emoji> '
         f"<b>{escape(text)}</b>"
     )
 
 
-def plain(emoji_id: str, text: str) -> str:
+def plain(emoji_id: int | str, text: str) -> str:
     """Render ``text`` with a leading plain (fallback) emoji; no markup."""
     return f"{_glyph_for(emoji_id)} {text}"
 
 
-def glyph(emoji_id: str) -> str:
+def glyph(emoji_id: int | str) -> str:
     return _glyph_for(emoji_id)
 
 
-def _glyph_for(emoji_id: str) -> str:
+def icon_id(emoji_id: str) -> int | None:
+    """Return the integer emoji id for use as a Telethon button icon."""
+    if emoji_id is None:
+        return None
+    return int(emoji_id)
+
+
+def _glyph_for(emoji_id: int | str) -> str:
+    target = _normalize(emoji_id)
     for name, value in vars(EMOJI).items():
-        if value == emoji_id:
+        if _normalize(value) == target:
             return getattr(GLYPH, name)
     raise ValueError("unknown premium emoji id")
+
+
+def _str_id(emoji_id: int | str) -> str:
+    if isinstance(emoji_id, int):
+        return str(emoji_id)
+    return emoji_id
+
+
+def _normalize(emoji_id: int | str) -> str:
+    return _str_id(emoji_id).strip()
