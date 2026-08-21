@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
-import fcntl
 import os
 from pathlib import Path
 import re
+import sys
 from typing import ClassVar
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows fallback
+    fcntl = None  # type: ignore[assignment]
+
+if sys.platform == "win32":
+    import msvcrt
 
 
 class TelegramSessionInUseError(RuntimeError):
@@ -44,8 +52,8 @@ class TelegramSessionFileLock:
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         descriptor = os.open(self.lock_path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            _lock_exclusive(descriptor)
+        except _LockAcquireError:
             owner = _read_owner_metadata(self.lock_path)
             os.close(descriptor)
             raise TelegramSessionInUseError(
@@ -68,7 +76,7 @@ class TelegramSessionFileLock:
         self._descriptor = None
         self._held_paths.discard(self._key)
         try:
-            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            _unlock(descriptor)
         finally:
             os.close(descriptor)
 
@@ -81,6 +89,10 @@ class TelegramSessionFileLock:
 
 
 _ROLE_RE = re.compile(r"[^A-Za-z0-9_.:-]")
+
+
+class _LockAcquireError(Exception):
+    """Raised when the advisory lock is already held by another process."""
 
 
 def _safe_role(role: str) -> str:
@@ -109,3 +121,30 @@ def _read_owner_metadata(path: Path) -> dict[str, str]:
             value = _safe_role(value)
         values[key] = value
     return values
+
+
+def _lock_exclusive(descriptor: int) -> None:
+    if fcntl is not None:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise _LockAcquireError() from None
+        return
+    try:
+        # msvcrt.LK_NBLCK is non-blocking and raises OSError on conflict.
+        msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+    except OSError:
+        raise _LockAcquireError() from None
+
+
+def _unlock(descriptor: int) -> None:
+    if fcntl is not None:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        return
+    # Windows locks are released when the descriptor is closed; the explicit
+    # unlock is best-effort and only needs to succeed while the lock is held.
+    os.lseek(descriptor, 0, os.SEEK_SET)
+    try:
+        msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
+    except OSError:
+        pass

@@ -13,7 +13,6 @@ from .message_prefilter import MinimalAnalyzerInput
 from .opportunity_analysis import (
     IntentStage,
     MarketDirection,
-    OpportunityAnalysis,
     OpportunityAnalyzer,
     OpportunityType,
     opportunity_analysis_call_is_compatible,

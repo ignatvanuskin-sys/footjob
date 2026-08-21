@@ -14,6 +14,7 @@ from .persistence.search_profiles import (
     SearchProfileConfirmationStatus,
     UserNotFound,
 )
+from .premium_emoji import EMOJI, plain
 from .profile_confirmation import (
     ProfileConfirmationService,
     ProfileConfirmationView,
@@ -73,13 +74,16 @@ class TelegramNavigationService:
 
     def home(self) -> TelegramOnboardingResponse:
         return TelegramOnboardingResponse(
-            "<b>Главное меню</b>\n\nВыберите раздел:",
+            plain(EMOJI.HOUSE, "Главное меню") + "\n\nВыберите раздел:",
             (
                 (
-                    _button("Мой поиск", b"nav:search"),
-                    _button("Настройки", b"nav:settings"),
+                    _button("Мой поиск", b"nav:search", icon=EMOJI.SEARCH),
+                    _button("Настройки", b"nav:settings", icon=EMOJI.SETTINGS),
                 ),
-                (_button("Подписка", b"nav:subscription"),),
+                (
+                    _button("Подписка", b"nav:subscription", icon=EMOJI.WALLET),
+                    _button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),
+                ),
             ),
         )
 
@@ -91,12 +95,14 @@ class TelegramNavigationService:
         profiles = await self._profiles(external_user_id)
         if not profiles:
             return TelegramOnboardingResponse(
-                "<b>Мой поиск</b>\n\n"
+                plain(EMOJI.SEARCH, "Мой поиск") + "\n\n"
                 "Пока нет сохранённых поисков. Создайте первый поиск "
                 "одним сообщением.",
                 (
-                    (_button("Создать поиск", b"nav:profile:new"),),
-                    (_button(HOME_LABEL, b"nav:home"),),
+                    (
+                        _button("Создать поиск", b"nav:profile:new", icon=EMOJI.FILE),
+                    ),
+                    (_button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),),
                 ),
             )
 
@@ -105,16 +111,19 @@ class TelegramNavigationService:
                 _button(
                     f"Поиск {index}: {_profile_state(view)}",
                     f"nav:profile:{view.profile.id}".encode("ascii"),
+                    icon=EMOJI.FILE,
                 ),
             )
             for index, view in enumerate(profiles, 1)
         )
         return TelegramOnboardingResponse(
-            "<b>Мой поиск</b>\n\nВыберите профиль, чтобы посмотреть его состояние.",
+            plain(EMOJI.SEARCH, "Мой поиск") + "\n\nВыберите профиль, чтобы посмотреть его состояние.",
             rows
             + (
-                (_button("Создать поиск", b"nav:profile:new"),),
-                (_button(HOME_LABEL, b"nav:home"),),
+                (
+                    _button("Создать поиск", b"nav:profile:new", icon=EMOJI.FILE),
+                ),
+                (_button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),),
             ),
         )
 
@@ -126,11 +135,13 @@ class TelegramNavigationService:
         profiles = await self._profiles(external_user_id)
         if not profiles:
             return TelegramOnboardingResponse(
-                "<b>Настройки</b>\n\n"
+                plain(EMOJI.SETTINGS, "Настройки") + "\n\n"
                 "Сначала создайте профиль поиска, чтобы настроить его.",
                 (
-                    (_button("Создать поиск", b"nav:profile:new"),),
-                    (_button(HOME_LABEL, b"nav:home"),),
+                    (
+                        _button("Создать поиск", b"nav:profile:new", icon=EMOJI.FILE),
+                    ),
+                    (_button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),),
                 ),
             )
 
@@ -142,13 +153,14 @@ class TelegramNavigationService:
                         f"nav:settings:{view.profile.id}:"
                         f"{view.profile.revision}"
                     ).encode("ascii"),
+                    icon=EMOJI.SETTINGS,
                 ),
             )
             for index, view in enumerate(profiles, 1)
         )
         return TelegramOnboardingResponse(
-            "<b>Настройки</b>\n\nВыберите поиск, который хотите изменить.",
-            rows + ((_button(HOME_LABEL, b"nav:home"),),),
+            plain(EMOJI.SETTINGS, "Настройки") + "\n\nВыберите поиск, который хотите изменить.",
+            rows + ((_button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),),),
         )
 
     async def profile(
@@ -171,6 +183,7 @@ class TelegramNavigationService:
                         f"nav:settings:{profile.id}:"
                         f"{profile.revision}"
                     ).encode("ascii"),
+                    icon=EMOJI.SETTINGS,
                 ),
             )
         ]
@@ -183,6 +196,7 @@ class TelegramNavigationService:
                             f"nav:confirm:{profile.id}:"
                             f"{profile.revision}"
                         ).encode("ascii"),
+                        icon=EMOJI.CHECK,
                     ),
                 )
             )
@@ -197,12 +211,15 @@ class TelegramNavigationService:
                             f"nav:{action}:{profile.id}:"
                             f"{profile.revision}"
                         ).encode("ascii"),
+                        icon=EMOJI.CROSS if profile.is_active else EMOJI.CHECK,
                     ),
                 )
             )
-        rows.append((_button("Мой поиск", b"nav:search"),))
+        rows.append(
+            (_button("Мой поиск", b"nav:search", icon=EMOJI.SEARCH),)
+        )
         return TelegramOnboardingResponse(
-            f"<b>Поиск</b>\n\n{format_profile_summary(view)}",
+            plain(EMOJI.PROFILE, "Поиск") + "\n\n" + format_profile_summary(view),
             tuple(rows),
         )
 
@@ -228,6 +245,7 @@ class TelegramNavigationService:
                             f"nav:edit:{profile.id}:{profile.revision}:"
                             f"{SETTING_FIELD_CODES[field]}"
                         ).encode("ascii"),
+                        icon=_field_icon(field),
                     ),
                 )
                 for field in ("roles", "skills", "categories")
@@ -264,6 +282,7 @@ class TelegramNavigationService:
                             f"nav:confirm:{profile.id}:"
                             f"{profile.revision}"
                         ).encode("ascii"),
+                        icon=EMOJI.CHECK,
                     ),
                 )
             )
@@ -278,16 +297,21 @@ class TelegramNavigationService:
                             f"nav:{action}:{profile.id}:"
                             f"{profile.revision}"
                         ).encode("ascii"),
+                        icon=EMOJI.CROSS if profile.is_active else EMOJI.CHECK,
                     ),
                 )
             )
         rows.append(
             (
-                _button("Назад к поиску", f"nav:profile:{profile.id}".encode("ascii")),
+                _button(
+                    "Назад к поиску",
+                    f"nav:profile:{profile.id}".encode("ascii"),
+                    icon=EMOJI.SEARCH,
+                ),
             )
         )
         return TelegramOnboardingResponse(
-            "<b>Настройки поиска</b>\n\n"
+            plain(EMOJI.SETTINGS, "Настройки поиска") + "\n\n"
             f"{format_profile_summary(view)}\n\n"
             "Выберите параметр. После нажатия отправьте новое значение "
             "обычным сообщением.",
@@ -313,13 +337,15 @@ class TelegramNavigationService:
                 trial_policy_version=user.trial_policy_version,
             )
         return TelegramOnboardingResponse(
-            "<b>Подписка</b>\n\n"
+            plain(EMOJI.WALLET, "Подписка") + "\n\n"
             f"{trial_text}\n\n"
             f"Тариф: {self._billing_plan.price_label}.\n"
             "Платная подписка пока не подключена в V2.",
             (
-                (_button("Мой поиск", b"nav:search"),),
-                (_button(HOME_LABEL, b"nav:home"),),
+                (_button("Мой поиск", b"nav:search", icon=EMOJI.SEARCH),),
+                (
+                    _button(HOME_LABEL, b"nav:home", icon=EMOJI.HOUSE),
+                ),
             ),
         )
 
@@ -365,7 +391,7 @@ def setting_prompt(code: str) -> str:
 
 def new_profile_prompt() -> str:
     return (
-        "<b>Новый поиск</b>\n\n"
+        plain(EMOJI.PROFILE, "Новый поиск") + "\n\n"
         "Опишите обычным сообщением, кем вы работаете и какие задачи "
         "ищете. AI подготовит черновик профиля для проверки.\n\n"
         "Для явного ручного заполнения используйте команду:\n"
@@ -373,10 +399,10 @@ def new_profile_prompt() -> str:
     )
 
 
-def _button(label: str, data: bytes) -> TelegramButtonSpec:
+def _button(label: str, data: bytes, *, icon: str | None = None) -> TelegramButtonSpec:
     if len(data) > 64:
         raise ValueError("Telegram navigation callback exceeds 64 bytes")
-    return TelegramButtonSpec(label, data)
+    return TelegramButtonSpec(label, data, icon=icon)
 
 
 def _profile_state(view: ProfileConfirmationView) -> str:
@@ -396,11 +422,12 @@ def _work_type_button(profile, option) -> TelegramButtonSpec:
     work_type, code, label = option
     selected = work_type in (profile.preferences.work_types or ())
     return _button(
-        f"{'[x]' if selected else '[ ]'} {label}",
+        label,
         (
             f"nav:toggle:{profile.id}:{code}:"
             f"{profile.revision}"
         ).encode("ascii"),
+        icon=EMOJI.CHECK if selected else EMOJI.CROSS,
     )
 
 
@@ -411,7 +438,21 @@ def _setting_button(profile, field: str) -> TelegramButtonSpec:
             f"nav:edit:{profile.id}:{profile.revision}:"
             f"{SETTING_FIELD_CODES[field]}"
         ).encode("ascii"),
+        icon=_field_icon(field),
     )
+
+
+def _field_icon(field: str) -> str:
+    return {
+        "roles": EMOJI.PROFILE,
+        "skills": EMOJI.CODE,
+        "categories": EMOJI.BOX,
+        "budget": EMOJI.MONEY,
+        "languages": EMOJI.TEXT,
+        "geographies": EMOJI.LOCATION,
+        "work_modes": EMOJI.RESIZE,
+        "excluded_categories": EMOJI.CROSS,
+    }[field]
 
 
 def _trial_status(

@@ -37,7 +37,6 @@ from .telegram_profile_discovery import (
 from .search_profiles import (
     BudgetPolicy,
     OpportunityType,
-    ParsedSearchProfile,
     SearchProfilePreferences,
     SearchProfileTerm,
     SearchProfileTermInput,
@@ -560,15 +559,15 @@ def format_profile_summary(view: ProfileConfirmationView) -> str:
     profile = view.profile
     lines = [
         "<b>Профиль поиска</b>",
-        f"Роли: {_format_terms(profile.roles)}",
-        f"Навыки: {_format_terms(profile.skills)}",
-        f"Категории: {_format_terms(profile.categories)}",
-        f"Типы работы: {_format_work_types(profile.preferences)}",
-        f"Бюджет: {_format_budget(profile.preferences)}",
-        f"Языки: {_format_optional_terms(profile.preferences.languages)}",
-        f"География: {_format_optional_terms(profile.preferences.geographies)}",
-        f"Формат: {_format_work_modes(profile.preferences)}",
-        "Исключения: "
+        f"{_summary_mark()} Роли: {_format_terms(profile.roles)}",
+        f"{_summary_mark()} Навыки: {_format_terms(profile.skills)}",
+        f"{_summary_mark()} Категории: {_format_terms(profile.categories)}",
+        f"{_summary_mark()} Типы работы: {_format_work_types(profile.preferences)}",
+        f"{_summary_mark()} Бюджет: {_format_budget(profile.preferences)}",
+        f"{_summary_mark()} Языки: {_format_optional_terms(profile.preferences.languages)}",
+        f"{_summary_mark()} География: {_format_optional_terms(profile.preferences.geographies)}",
+        f"{_summary_mark()} Формат: {_format_work_modes(profile.preferences)}",
+        f"{_summary_mark()} Исключения: "
         f"{_format_optional_terms(profile.preferences.excluded_categories)}",
     ]
     if view.missing_fields:
@@ -619,6 +618,10 @@ def _field_label(field: str) -> str:
         "skills": "навыки",
         "categories": "категории",
     }[field]
+
+
+def _summary_mark() -> str:
+    return "▫️"
 
 
 def _format_work_types(preferences: SearchProfilePreferences) -> str:

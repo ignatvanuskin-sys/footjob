@@ -12,7 +12,6 @@ import unicodedata
 from uuid import UUID
 
 from .matching import (
-    STRUCTURED_SCORING_POLICY_VERSION,
     StructuredCandidateScore,
     StructuredScoringPolicy,
     StructuredScoringResult,

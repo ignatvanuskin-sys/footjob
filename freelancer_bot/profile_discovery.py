@@ -40,7 +40,6 @@ from .telegram_profile_discovery import (
     TELEGRAM_PROFILE_DISCOVERY_STRATEGY_VERSION,
     TelegramGlobalSearchProvider,
     TelegramGlobalSearchPageCache,
-    TelegramProfileSearchQuery,
     build_telegram_profile_search_queries,
 )
 from .web_discovery import (
@@ -80,7 +79,7 @@ class DiscoveryProfileInput:
             raise ValueError("identity_key must not be blank")
         if self.profile_revision < 1:
             raise ValueError("profile_revision must be positive")
-        for field in (
+        for attribute in (
             "roles",
             "services",
             "skills",
@@ -89,9 +88,9 @@ class DiscoveryProfileInput:
             "geographies",
             "work_modes",
         ):
-            values = getattr(self, field)
+            values = getattr(self, attribute)
             if any(not isinstance(value, str) or not value.strip() for value in values):
-                raise ValueError(f"{field} must contain non-empty strings")
+                raise ValueError(f"{attribute} must contain non-empty strings")
 
 
 @dataclass(frozen=True)

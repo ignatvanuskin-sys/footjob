@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 import random
-from typing import Any, TypeVar
+from typing import TypeVar
 from uuid import uuid4
 
 from telethon.errors import FloodWaitError
@@ -12,7 +12,6 @@ from telethon.errors import FloodWaitError
 from .config import RuntimeConfig
 from .persistence.database import Database
 from .persistence.telegram_operation_state import (
-    TelegramCollectorFloodWaitActive,
     TelegramCollectorOperationRepository,
     TelegramCollectorOperationState,
     TelegramOperationOutcome,

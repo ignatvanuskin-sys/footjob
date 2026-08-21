@@ -52,11 +52,10 @@ from .telegram_chat_discovery import input_entity_for_peer
 from .telegram_profile_discovery import TelegramGlobalSearchPageCache
 from .telegram_request_governor import TelegramRequestGovernor
 from .web_discovery import (
-    SearxngSearchBackend,
     WebDiscoveryGovernor,
     WebDiscoveryProvider,
 )
-from .web_provider_chain import build_web_search_backends, web_discovery_readiness
+from .web_provider_chain import build_web_search_backends
 
 
 @dataclass(frozen=True)

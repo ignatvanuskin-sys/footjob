@@ -38,14 +38,11 @@ from .persistence.source_repository import (
     SourceStatus,
 )
 from .persistence.telegram_chat_discovery import (
-    DEDUP_BUCKETS,
     SCREEN_JOB_TYPE,
     SEARCH_JOB_TYPE,
-    ChatDiscoveryBackpressure,
     ChatDiscoveryPeerRecord,
     ChatDiscoverySearchRunRecord,
     ChatDiscoveryTopicRecord,
-    ScreenClaim,
     TelegramChatDiscoveryRepository,
     normalize_topic,
 )

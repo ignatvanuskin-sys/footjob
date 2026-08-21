@@ -7,7 +7,7 @@ from html.parser import HTMLParser
 import ipaddress
 import socket
 import time
-from typing import Callable, Iterable
+from typing import Callable
 from urllib.parse import urljoin, urlsplit
 import urllib.error
 import urllib.request

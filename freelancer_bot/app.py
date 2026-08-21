@@ -57,6 +57,7 @@ from .persistence.search_profiles import (
     UserNotFound,
 )
 from .ports import CollectedMessage, ReplyDraftProvider
+from .premium_emoji import EMOJI
 from .profile import load_freelancer_profile
 from .profile_confirmation import ProfileConfirmationService
 from .profile_onboarding import (
@@ -117,8 +118,16 @@ class TelethonLegacyLeadDelivery:
     async def deliver_lead(self, chat_id: int, body: str, lead_id: int) -> int | None:
         buttons = [
             [
-                Button.inline("Сделать отклик", data=f"draft:{lead_id}".encode("utf-8")),
-                Button.inline("Игнор", data=f"ignore:{lead_id}".encode("utf-8")),
+                Button.inline(
+                    "Сделать отклик",
+                    data=f"draft:{lead_id}".encode("utf-8"),
+                    icon=EMOJI.SEND,
+                ),
+                Button.inline(
+                    "Игнор",
+                    data=f"ignore:{lead_id}".encode("utf-8"),
+                    icon=EMOJI.CROSS,
+                ),
             ]
         ]
         try:
@@ -462,7 +471,8 @@ class LeadBot:
         async def stop(event: events.NewMessage.Event) -> None:
             if self.storage is not None:
                 self.storage.remove_subscriber(int(event.chat_id))
-            await event.respond("Ок, этот чат отписан от уведомлений.")
+            await event.respond("Ок, этот чат отписан от уведомлений.",
+                                parse_mode="html")
 
         @self.bot_client.on(events.NewMessage(pattern=r"^/status"))
         async def status(event: events.NewMessage.Event) -> None:
@@ -473,28 +483,33 @@ class LeadBot:
                 return
             stats = self.storage.stats()
             await event.respond(
-                "Статус:\n"
-                f"- источников: {len(self.sources)}\n"
-                f"- подписчиков: {stats['subscribers']}\n"
-                f"- лидов в базе: {stats['leads']}\n"
-                f"- ожидают повторной отправки: {stats['pending']}"
+                "<b>Статус</b>\n\n"
+                f"• источников: {len(self.sources)}\n"
+                f"• подписчиков: {stats['subscribers']}\n"
+                f"• лидов в базе: {stats['leads']}\n"
+                f"• ожидают повторной отправки: {stats['pending']}",
+                parse_mode="html",
             )
 
         @self.bot_client.on(events.NewMessage(pattern=r"^/sources"))
         async def sources(event: events.NewMessage.Event) -> None:
             lines = [f"{index}. {source.handle} — {source.title}" for index, source in enumerate(self.sources, 1)]
-            await event.respond("Активные источники:\n" + "\n".join(lines))
+            await event.respond(
+                "<b>Активные источники</b>\n\n" + "\n".join(lines),
+                parse_mode="html",
+            )
 
         @self.bot_client.on(events.NewMessage(pattern=r"^/keywords"))
         async def keywords(event: events.NewMessage.Event) -> None:
             keyword_preview = ", ".join(list(self.filter_config.keywords)[:35])
             stop_preview = ", ".join(self.filter_config.stop_words[:35])
             await event.respond(
-                "Ключевые слова:\n"
+                "<b>Ключевые слова</b>\n\n"
                 f"{keyword_preview}\n\n"
-                "Стоп-слова:\n"
+                "<b>Стоп-слова</b>\n"
                 f"{stop_preview}\n\n"
-                f"Минимальный score: {self.filter_config.min_score}"
+                f"Минимальный score: {self.filter_config.min_score}",
+                parse_mode="html",
             )
 
         @self.bot_client.on(events.NewMessage(pattern=r"^/test(?:\s+(.+))?"))
@@ -664,7 +679,7 @@ class LeadBot:
                         f"Не удалось обработать описание: {exc}\n\n"
                         "Попробуйте отправить описание ещё раз.",
                         parse_mode="html",
-                        buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel")]],
+                        buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
                     )
                     return
                 if not response.retryable:
@@ -727,7 +742,7 @@ class LeadBot:
                     f"Не удалось сохранить значение: {exc}\n\n"
                     f"{prompt}",
                     parse_mode="html",
-                    buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel")]],
+                    buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
                 )
                 return
 
@@ -802,7 +817,7 @@ class LeadBot:
             await event.respond(
                 new_profile_prompt(),
                 parse_mode="html",
-                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel")]],
+                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
             )
 
         @self.bot_client.on(events.CallbackQuery(pattern=rb"^nav:cancel$"))
@@ -873,7 +888,7 @@ class LeadBot:
             await event.respond(
                 setting_prompt(setting_code),
                 parse_mode="html",
-                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel")]],
+                buttons=[[Button.inline(CANCEL_LABEL, data=b"nav:cancel", icon=EMOJI.CROSS)]],
             )
 
         @self.bot_client.on(
@@ -1781,7 +1796,8 @@ async def _respond_onboarding(event, response: TelegramOnboardingResponse) -> No
 
 async def _respond_navigation(event, response: TelegramOnboardingResponse) -> None:
     buttons = [
-        [Button.inline(button.label, data=button.data) for button in row]
+        [Button.inline(button.label, data=button.data, icon=button.icon)
+         for button in row]
         for row in response.buttons
     ]
     await event.respond(
@@ -1793,9 +1809,9 @@ async def _respond_navigation(event, response: TelegramOnboardingResponse) -> No
 
 def _main_navigation_keyboard() -> list[list[object]]:
     return [
-        [Button.text("Мой поиск", resize=True, single_use=False),
-         Button.text("Настройки", resize=True, single_use=False)],
-        [Button.text("Подписка", resize=True, single_use=False)],
+        [Button.text("Мой поиск", resize=True, single_use=False, icon=EMOJI.SEARCH),
+         Button.text("Настройки", resize=True, single_use=False, icon=EMOJI.SETTINGS)],
+        [Button.text("Подписка", resize=True, single_use=False, icon=EMOJI.WALLET)],
     ]
 
 
@@ -1810,7 +1826,8 @@ def _telethon_action_buttons(
     buttons: tuple[tuple[TelegramDeliveryActionButton, ...], ...],
 ) -> list[list[object]]:
     return [
-        [Button.inline(button.label, data=button.data) for button in row]
+        [Button.inline(button.label, data=button.data, icon=button.icon)
+         for button in row]
         for row in buttons
     ]
 

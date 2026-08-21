@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime
 import hashlib
-import re
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import UUID

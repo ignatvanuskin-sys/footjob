@@ -15,10 +15,12 @@ from .persistence.opportunities import (
     CanonicalOpportunityRecord,
     OpportunityLifecycleStatus,
 )
+from .premium_emoji import EMOJI, glyph
 
 
 TELEGRAM_LEAD_CARD_SCHEMA_VERSION = "telegram-lead-card.v1"
 TELEGRAM_MESSAGE_LIMIT = 4096
+_LINK_EMOJI = EMOJI.LINK
 _TITLE_LIMIT = 240
 _SUMMARY_LIMIT = 700
 _SKILL_LIMIT = 5
@@ -266,7 +268,10 @@ def _footer(
     freshness = _freshness_label(last_seen_at, rendered_at)
     if source_url is None:
         return freshness
-    return f'<a href="{html.escape(source_url, quote=True)}">Источник</a> · {freshness}'
+    return (
+        f'{glyph(_LINK_EMOJI)} <a href="{html.escape(source_url, quote=True)}">Источник</a>'
+        f" · {freshness}"
+    )
 
 
 def _freshness_label(last_seen_at: datetime, rendered_at: datetime) -> str:

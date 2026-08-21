@@ -10,6 +10,7 @@ from .profile_confirmation import (
     ProfileConfirmationView,
     format_profile_summary,
 )
+from .premium_emoji import EMOJI, plain
 from .profile_onboarding import OnboardingProfileError
 from .profile_onboarding_service import ProfileOnboardingOutcome
 from .search_profiles import BudgetPolicy, OpportunityType, WorkMode
@@ -19,6 +20,7 @@ from .search_profiles import BudgetPolicy, OpportunityType, WorkMode
 class TelegramButtonSpec:
     label: str
     data: bytes
+    icon: str | None = None
 
 
 @dataclass(frozen=True)
@@ -55,9 +57,10 @@ class TelegramProfileOnboarding:
     ) -> TelegramOnboardingResponse:
         if description is None or not description.strip():
             return TelegramOnboardingResponse(
-                "Опишите, кем вы работаете "
-                "и какие задачи ищете:\n"
-                "/profile ваш текст\n\n"
+                plain(EMOJI.PROFILE, "Опишите, кем вы работаете")
+                + " "
+                + "и какие задачи ищете:\n"
+                + "/profile ваш текст\n\n"
                 + _manual_help()
             )
         if self._ai_onboarding is None:
@@ -294,6 +297,7 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
     if profile.confirmation_status.value == "confirmed":
         action = "deactivate" if profile.is_active else "activate"
         label = "Остановить поиск" if profile.is_active else "Активировать поиск"
+        icon = EMOJI.CROSS if profile.is_active else EMOJI.CHECK
         return TelegramOnboardingResponse(
             format_profile_summary(view),
             (
@@ -303,6 +307,7 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
                         f"profile:{action}:{profile.id}:{profile.revision}".encode(
                             "ascii"
                         ),
+                        icon=icon,
                     ),
                 ),
             ),
@@ -314,12 +319,14 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
             TelegramButtonSpec(
                 "Подтвердить",
                 f"profile:confirm:{profile_id}:{revision}".encode("ascii"),
+                icon=EMOJI.CHECK,
             ),
         ),
         tuple(
             TelegramButtonSpec(
                 label,
                 f"profile:edit:{profile_id}:{field}:{revision}".encode("ascii"),
+                icon=EMOJI.PENCIL,
             )
             for field, label in (
                 ("roles", "Изменить роли"),
@@ -331,6 +338,7 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
             TelegramButtonSpec(
                 _work_type_button_label(profile, work_type, label),
                 f"pwt:{profile_id}:{code}:{revision}".encode("ascii"),
+                icon=_work_type_icon(work_type, profile),
             )
             for work_type, code, label in (
                 (OpportunityType.ONE_OFF_ORDER, "o", "Заказы"),
@@ -341,6 +349,7 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
             TelegramButtonSpec(
                 _work_type_button_label(profile, work_type, label),
                 f"pwt:{profile_id}:{code}:{revision}".encode("ascii"),
+                icon=_work_type_icon(work_type, profile),
             )
             for work_type, code, label in (
                 (OpportunityType.VACANCY, "v", "Вакансии"),
@@ -355,6 +364,7 @@ def _profile_response(view: ProfileConfirmationView) -> TelegramOnboardingRespon
             TelegramButtonSpec(
                 "Другие настройки",
                 f"pset:{profile_id}:{revision}".encode("ascii"),
+                icon=EMOJI.SETTINGS,
             ),
         ),
     )
@@ -380,9 +390,13 @@ def _manual_help() -> str:
     )
 
 
-def _work_type_button_label(profile, work_type, label: str) -> str:
+def _work_type_icon(work_type: OpportunityType, profile) -> str:
     selected = work_type in (profile.preferences.work_types or ())
-    return f"{'[x]' if selected else '[ ]'} {label}"
+    return EMOJI.CHECK if selected else EMOJI.CROSS
+
+
+def _work_type_button_label(profile, work_type, label: str) -> str:
+    return label
 
 
 def settings_help(profile_id: UUID, revision: int) -> str:

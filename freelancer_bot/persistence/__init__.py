@@ -15,13 +15,6 @@ from .discovery import (
 )
 from .entitlements import EntitlementUserNotFound, TrialEntitlementChecker
 from .jobs import DurableJobRepository, JobClaim
-from .telegram_chat_discovery import (
-    ChatDiscoveryBackpressure,
-    ChatDiscoveryPeerRecord,
-    ChatDiscoverySearchRunRecord,
-    ChatDiscoveryTopicRecord,
-    TelegramChatDiscoveryRepository,
-)
 from .feedback import (
     FEEDBACK_SCHEMA_VERSION,
     SOURCE_FEEDBACK_SIGNAL_VERSION,
@@ -57,10 +50,6 @@ from .product_metrics import (
     RANKING_DIMENSIONS,
     SourcePerformanceMetric,
     WonLeadRateMetric,
-)
-from .profile_onboarding import (
-    ProfileOnboardingAttemptRecord,
-    ProfileOnboardingAttemptRepository,
 )
 from .opportunities import (
     CANONICAL_OPPORTUNITY_SCHEMA_VERSION,

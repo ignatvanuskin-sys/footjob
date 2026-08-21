@@ -14,6 +14,7 @@ from .persistence.delivery_actions import (
     DeliveryActionWriteOutcome,
 )
 from .persistence.feedback import FeedbackRepository
+from .premium_emoji import EMOJI
 
 
 DELIVERY_ACTION_CALLBACK_VERSION = "lda1"
@@ -31,6 +32,7 @@ _CODE_ACTIONS = {code: action for action, code in _ACTION_CODES.items()}
 class TelegramDeliveryActionButton:
     label: str
     data: bytes
+    icon: str | None = None
 
 
 class DeliveryActionService:
@@ -113,6 +115,7 @@ def delivery_action_buttons(
                         delivery_id,
                         DeliveryActionType.OPEN,
                     ),
+                    icon=EMOJI.LINK,
                 ),
             )
         )
@@ -124,6 +127,7 @@ def delivery_action_buttons(
                     delivery_id,
                     DeliveryActionType.NOT_SUITABLE,
                 ),
+                icon=EMOJI.CROSS,
             ),
             TelegramDeliveryActionButton(
                 "Получил заказ",
@@ -131,6 +135,7 @@ def delivery_action_buttons(
                     delivery_id,
                     DeliveryActionType.GOT_JOB,
                 ),
+                icon=EMOJI.CHECK,
             ),
         )
     )

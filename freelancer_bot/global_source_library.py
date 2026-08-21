@@ -15,7 +15,7 @@ import json
 import re
 from time import perf_counter
 import tracemalloc
-from typing import Iterable, Mapping, Sequence
+from typing import Mapping, Sequence
 
 
 BOOTSTRAP_TAXONOMY_VERSION = "bootstrap-buyer-ecosystems.v1"

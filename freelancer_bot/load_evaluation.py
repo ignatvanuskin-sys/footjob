@@ -8,7 +8,7 @@ import json
 from math import ceil
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Literal
+from typing import Literal
 from hashlib import sha256
 import re
 
