@@ -446,6 +446,13 @@ class RuntimeConfig(BaseSettings):
         ge=0,
         le=30,
     )
+    onboarding_profile_max_tokens: int = classified_field(
+        1000,
+        sensitivity=Sensitivity.INTERNAL,
+        validation_alias="ONBOARDING_PROFILE_MAX_TOKENS",
+        ge=1,
+        le=32768,
+    )
     max_ai_calls_per_run: int | None = classified_field(
         10,
         sensitivity=Sensitivity.INTERNAL,

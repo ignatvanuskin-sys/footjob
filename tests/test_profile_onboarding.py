@@ -366,6 +366,51 @@ class OnboardingProfileContractTest(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(captured[0]["authorization"], "Bearer tokenrouter-secret")
 
+    async def test_onboarding_payload_bounds_max_tokens_to_fit_free_tier_budget(self):
+        captured: list[dict] = []
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return None
+
+            def read(self):
+                return _openai_response(
+                    json.dumps(_analysis_payload(), ensure_ascii=False)
+                ).encode("utf-8")
+
+        def fake_urlopen(request, timeout):
+            captured.append(json.loads(request.data))
+            return Response()
+
+        analyzer = OpenAIOnboardingProfileAnalyzer(
+            api_key="profile-secret",
+            model="replaceable-profile-model",
+            max_output_attempts=1,
+            max_transport_attempts=1,
+            max_tokens=1000,
+        )
+        with patch(
+            "freelancer_bot.profile_onboarding.urllib.request.urlopen",
+            fake_urlopen,
+        ):
+            await analyzer.analyze(DESCRIPTION)
+
+        # OpenRouter's free tier rejects requests that default to a model's
+        # full context budget; the adapter must send an explicit, bounded
+        # max_tokens that fits within the account's remaining allowance.
+        self.assertEqual(captured[0]["max_tokens"], 1000)
+
+    async def test_onboarding_max_tokens_defaults_to_a_small_safe_bound(self):
+        analyzer = OpenAIOnboardingProfileAnalyzer(
+            api_key="profile-secret",
+            max_output_attempts=1,
+            max_transport_attempts=1,
+        )
+        self.assertEqual(analyzer._max_tokens, 1000)
+
     async def test_provider_call_budget_is_hard_and_reported(self):
         calls = 0
 

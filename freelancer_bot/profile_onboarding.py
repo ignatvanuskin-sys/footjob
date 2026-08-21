@@ -251,6 +251,7 @@ class OpenAIOnboardingProfileAnalyzer:
         transport_retry_backoff_seconds: float = 1.0,
         base_url: str = OPENAI_CHAT_COMPLETIONS_URL,
         max_ai_calls_per_run: int | None = None,
+        max_tokens: int = 1000,
         analyzer_version: str = ONBOARDING_PROFILE_ANALYZER_VERSION,
         prompt_version: str = ONBOARDING_PROFILE_PROMPT_VERSION,
     ) -> None:
@@ -270,12 +271,15 @@ class OpenAIOnboardingProfileAnalyzer:
             raise ValueError("transport_retry_backoff_seconds must be nonnegative")
         if max_ai_calls_per_run is not None and max_ai_calls_per_run < 1:
             raise ValueError("max_ai_calls_per_run must be positive when configured")
+        if not 1 <= max_tokens <= 32768:
+            raise ValueError("max_tokens must be between 1 and 32768")
         self._temperature = temperature
         self._timeout_seconds = timeout_seconds
         self._max_output_attempts = max_output_attempts
         self._max_transport_attempts = max_transport_attempts
         self._transport_retry_backoff_seconds = transport_retry_backoff_seconds
         self._base_url = _bounded_text(base_url, "base_url", 2048)
+        self._max_tokens = max_tokens
         self._max_ai_calls_per_run = max_ai_calls_per_run
         self._ai_calls_used = 0
         self._analyzer_version = _safe_version(
@@ -309,6 +313,7 @@ class OpenAIOnboardingProfileAnalyzer:
                 config.onboarding_profile_transport_retry_backoff_seconds
             ),
             max_ai_calls_per_run=config.max_ai_calls_per_run,
+            max_tokens=config.onboarding_profile_max_tokens,
         )
 
     @property
@@ -499,6 +504,7 @@ class OpenAIOnboardingProfileAnalyzer:
             }
         payload: dict[str, Any] = {
             "model": self._model,
+            "max_tokens": self._max_tokens,
             "response_format": response_format,
             "messages": [
                 {
@@ -677,6 +683,7 @@ class OpenAICompatibleOnboardingProfileAnalyzer(OpenAIOnboardingProfileAnalyzer)
             ),
             base_url=base_url,
             max_ai_calls_per_run=config.max_ai_calls_per_run,
+            max_tokens=config.onboarding_profile_max_tokens,
         )
 
 
