@@ -73,11 +73,17 @@ class TelegramProfileOnboarding:
             )
         except OnboardingProfileError as exc:
             import logging
-            logging.getLogger("freelancer_bot").warning(
+            logger = logging.getLogger("freelancer_bot")
+            logger.warning(
                 "Onboarding AI failed: %s",
                 exc,
                 exc_info=True,
             )
+            # Log the full error details including any nested cause
+            if hasattr(exc, '__cause__') and exc.__cause__:
+                logger.warning("Onboarding cause: %s", exc.__cause__)
+            if hasattr(exc, 'args') and exc.args:
+                logger.warning("Onboarding args: %s", exc.args)
             return _ai_unavailable_response()
         view = await self._confirmation.show(
             platform="telegram",
