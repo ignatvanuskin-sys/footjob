@@ -1,0 +1,6 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "deploy": {
+    "startCommand": "uv run --frozen python -m freelancer_bot --bot-only"
+  }
+}
