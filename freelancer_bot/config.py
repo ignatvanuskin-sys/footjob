@@ -154,6 +154,12 @@ class RuntimeConfig(BaseSettings):
         sensitivity=Sensitivity.SENSITIVE,
         validation_alias="BOT_SESSION_PATH",
     )
+    flood_wait_threshold_seconds: int = classified_field(
+        120,
+        sensitivity=Sensitivity.INTERNAL,
+        validation_alias="FLOOD_WAIT_THRESHOLD_SECONDS",
+        ge=0,
+    )
     catch_up_limit: int = classified_field(
         25,
         sensitivity=Sensitivity.INTERNAL,

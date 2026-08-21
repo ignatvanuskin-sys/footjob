@@ -209,6 +209,7 @@ class LeadBot:
             str(config.bot_session_path),
             config.api_id,
             _required_secret(config.api_hash, "TELEGRAM_API_HASH/API_HASH"),
+            flood_sleep_threshold=config.flood_wait_threshold_seconds,
         )
         self.source_adapter = source_adapter or ApprovedTelegramSourceAdapter(
             self.database
