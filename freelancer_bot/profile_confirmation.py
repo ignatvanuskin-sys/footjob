@@ -17,7 +17,7 @@ from .persistence.search_profiles import (
     UserRepository,
     UserRecord,
 )
-from .premium_emoji import EMOJI, glyph as _glyph
+from .premium_emoji import EMOJI, inline as _invoke_inline
 from .profile_discovery import (
     ProfileDiscoveryIntentRepository,
     build_profile_discovery_intent,
@@ -622,7 +622,7 @@ def _field_label(field: str) -> str:
 
 
 def _summary_mark(field: str) -> str:
-    return _glyph(_FIELD_EMOJI[field])
+    return _invoke_inline(_FIELD_EMOJI[field])
 
 
 _FIELD_EMOJI = {

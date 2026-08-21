@@ -76,7 +76,8 @@ class TelegramLeadRendererTest(unittest.TestCase):
             "Нужно собрать Mini App для сервиса бронирования. "
             "Опыт с платежами будет плюсом.\n"
             "React, Telegram Mini Apps API\n\n"
-            '\U0001f517 <a href="https://t.me/freelance_fixture/42">Источник</a> · '
+            '<tg-emoji emoji-id="5769289093221454192">🔗</tg-emoji> '
+            '<a href="https://t.me/freelance_fixture/42">Источник</a> · '
             "6 минут назад",
         )
         self.assertNotIn("%", card.body_html)

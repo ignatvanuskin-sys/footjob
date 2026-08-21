@@ -140,8 +140,16 @@ def msg(emoji_id: int | str, text: str) -> str:
 
 
 def plain(emoji_id: int | str, text: str) -> str:
-    """Render ``text`` with a leading plain (fallback) emoji; no markup."""
-    return f"{_glyph_for(emoji_id)} {text}"
+    """Render ``text`` with a leading premium emoji in HTML message markup."""
+    return f"{inline(emoji_id)} {text}"
+
+
+def inline(emoji_id: int | str) -> str:
+    """Render a single premium emoji as ``<tg-emoji>`` HTML markup."""
+    value = _str_id(emoji_id)
+    if len(value) != 19 or not value.isdigit():
+        raise ValueError("invalid premium emoji id")
+    return f'<tg-emoji emoji-id="{value}">{_glyph_for(value)}</tg-emoji>'
 
 
 def glyph(emoji_id: int | str) -> str:

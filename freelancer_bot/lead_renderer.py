@@ -15,7 +15,7 @@ from .persistence.opportunities import (
     CanonicalOpportunityRecord,
     OpportunityLifecycleStatus,
 )
-from .premium_emoji import EMOJI, glyph
+from .premium_emoji import EMOJI, inline
 
 
 TELEGRAM_LEAD_CARD_SCHEMA_VERSION = "telegram-lead-card.v1"
@@ -269,7 +269,7 @@ def _footer(
     if source_url is None:
         return freshness
     return (
-        f'{glyph(_LINK_EMOJI)} <a href="{html.escape(source_url, quote=True)}">Источник</a>'
+        f'{inline(_LINK_EMOJI)} <a href="{html.escape(source_url, quote=True)}">Источник</a>'
         f" · {freshness}"
     )
 
