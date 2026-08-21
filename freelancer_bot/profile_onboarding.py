@@ -626,6 +626,17 @@ class OpenAIOnboardingProfileAnalyzer:
                 request,
                 timeout=self._timeout_seconds,
             ) as response:
+                if response.status >= 400:
+                    raise OnboardingProfileError(
+                        f"provider returned {response.status}: {response.reason}"
+                    )
+                raw = response.read().decode("utf-8")
+                log_event(
+                    logging.getLogger("freelancer_bot"),
+                    logging.INFO,
+                    "onboarding.provider_response",
+                    raw=raw[:200],
+                )
                 return response.read().decode("utf-8")
         except urllib.error.HTTPError as exc:
             retryable = exc.code == 429 or exc.code >= 500
