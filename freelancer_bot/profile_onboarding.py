@@ -5,11 +5,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 import json
+import logging
 import re
 import socket
 from typing import Any, Literal, Protocol, runtime_checkable
 import urllib.error
 import urllib.request
+
+from .observability import log_event
 
 from pydantic import (
     BaseModel,
@@ -637,7 +640,7 @@ class OpenAIOnboardingProfileAnalyzer:
                     "onboarding.provider_response",
                     raw=raw[:200],
                 )
-                return response.read().decode("utf-8")
+                return raw
         except urllib.error.HTTPError as exc:
             retryable = exc.code == 429 or exc.code >= 500
             failure_class = "http_429" if exc.code == 429 else (
