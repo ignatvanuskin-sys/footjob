@@ -642,12 +642,25 @@ class OpenAIOnboardingProfileAnalyzer:
                 )
                 return raw
         except urllib.error.HTTPError as exc:
+            body = ""
+            try:
+                body = exc.read().decode("utf-8", errors="ignore")[:2000]
+            except Exception:
+                pass
+            log_event(
+                logging.getLogger("freelancer_bot"),
+                logging.WARNING,
+                "onboarding.provider_http_error",
+                status=exc.code,
+                reason=str(exc.reason),
+                body=body[:500],
+            )
             retryable = exc.code == 429 or exc.code >= 500
             failure_class = "http_429" if exc.code == 429 else (
                 "http_5xx" if exc.code >= 500 else "http_4xx"
             )
             raise OnboardingProfileError(
-                f"{self.provider} onboarding-profile request failed",
+                f"{self.provider} onboarding-profile request failed: {exc.code} {body[:200]}",
                 retryable=retryable,
                 failure_class=failure_class,
             ) from None
